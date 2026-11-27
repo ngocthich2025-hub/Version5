@@ -1,0 +1,11 @@
+CREATE TABLE IF NOT EXISTS users(id serial primary key, username text unique not null, password text not null, name text not null, role text not null check(role in ('admin','teacher','student','parent')), active boolean default true);
+CREATE TABLE IF NOT EXISTS classes(id serial primary key,name text not null, owner int references users);
+CREATE TABLE IF NOT EXISTS members(class_id int references classes on delete cascade, student int references users, primary key(class_id,student));
+CREATE TABLE IF NOT EXISTS parents(parent int references users, student int references users,primary key(parent,student));
+CREATE TABLE IF NOT EXISTS lessons(id serial primary key,owner int references users, program text, unit text,title text,skill text, theory text, questions jsonb not null default '[]');
+CREATE TABLE IF NOT EXISTS tasks(id serial primary key,owner int references users,lesson int references lessons,class_id int references classes,student int references users,title text,deadline timestamptz, minutes int default 0, mode text default 'practice', questions jsonb not null);
+CREATE TABLE IF NOT EXISTS attempts(id serial primary key,task int references tasks,student int references users,started timestamptz default now(),submitted timestamptz,answers jsonb,score numeric,feedback text, unique(task,student));
+CREATE TABLE IF NOT EXISTS notes(id serial primary key,owner int references users,student int references users,body text,created timestamptz default now());
+CREATE TABLE IF NOT EXISTS events(id serial primary key,owner int references users,class_id int references classes,title text,at timestamptz);
+CREATE TABLE IF NOT EXISTS vocab(id serial primary key,owner int references users,program text,unit text,word text,meaning text,ipa text,example text);
+CREATE TABLE IF NOT EXISTS reviews(student int references users,word int references vocab,level int default 0,due timestamptz default now(),primary key(student,word));
